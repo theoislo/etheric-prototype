@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Etheric Double — Video Processor (fixed)</title>
+  <title>Etheric Double — Live Camera v3 (smooth)</title>
   <style>
     :root{--bg1:#1e2f3a;--bg2:#7fb6c9;--bg3:#c6b6df}
     *{box-sizing:border-box}
@@ -12,10 +12,10 @@
     header{padding:16px 20px;color:#fff;text-align:center}
     header h1{margin:.2rem 0 0;font-size:1.35rem;font-weight:700;letter-spacing:.02em}
     .app{display:grid;gap:12px;padding:12px}
-    .stage{position:relative;max-width:960px;margin:0 auto;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35);background:#000}
+    .stage{position:relative;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35);background:#000}
     canvas, video{display:block;width:100%;height:auto}
     video{position:absolute;inset:0;opacity:0;pointer-events:none}
-    .panel{max-width:960px;margin:10px auto 18px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);padding:12px 14px;border-radius:14px;color:#eef}
+    .panel{max-width:880px;margin:10px auto 18px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);padding:12px 14px;border-radius:14px;color:#eef}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
     .row{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center}
     input[type="range"],input[type="file"],select{width:100%}
@@ -23,31 +23,23 @@
     button{appearance:none;background:#e8e8ff;color:#222;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     button.sec{background:#222;color:#eaeaff;border:1px solid #666}
     .muted{opacity:.75}
-    .bar{height:8px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden;margin-top:8px}
-    .bar>span{display:block;height:100%;width:0;background:#e8e8ff}
     footer{color:#9ec9d8;text-align:center;padding:12px;font-size:.85rem}
     .note{font-size:.85rem;color:#cfe7f1}
     a.dl{display:inline-block;margin-left:8px}
-    .warn{color:#ffd9d9}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Etheric Double — Video Processor</h1>
-      <div class="note">Upload any video, apply the etheric aura, and export. Best in Chrome (desktop/Android). Safari/iPhone can preview but may not export long clips.</div>
+      <h1>Etheric Double — Live Camera v3</h1>
+      <div class="note">High‑res + temporal smoothing + feathered edges. Best in Chrome/Android; on iPhone use the iOS screen recorder to capture.</div>
     </header>
 
     <main class="app">
-      <div class="stage"><video id="src" playsinline crossorigin="anonymous"></video><canvas id="out"></canvas></div>
+      <div class="stage"><video id="src" playsinline></video><canvas id="out"></canvas></div>
 
       <section class="panel">
         <div class="grid">
-          <div>
-            <label>Video file</label>
-            <input id="file" type="file" accept="video/*" />
-            <div class="note muted">Tip: record at 1080p, even lighting, darker background.</div>
-          </div>
           <div class="row">
             <label for="edge">Edge Feather</label>
             <input id="edge" type="range" min="0" max="8" value="3" />
@@ -65,32 +57,29 @@
           </div>
           <div class="row">
             <label for="scale">Aura Size</label>
-            <input id="scale" type="range" min="0" max="15" value="4" />
-            <span id="scaleVal">4%</span>
+            <input id="scale" type="range" min="0" max="12" value="3" />
+            <span id="scaleVal">3%</span>
           </div>
           <div class="row">
-            <label for="tint">Aura Tint</label>
-            <input id="tint" type="color" value="#88d0ff" />
-            <span id="tintVal">#88D0FF</span>
+            <label for="hist">Temporal Smooth</label>
+            <input id="hist" type="range" min="0" max="6" value="3" />
+            <span id="histVal">3 frames</span>
           </div>
-          <div>
-            <label>Output FPS</label>
-            <select id="fps"><option>30</option><option>25</option><option selected>24</option><option>20</option><option>15</option></select>
-            <div class="note muted">Lower FPS = faster processing, smaller file.</div>
+          <div class="row">
+            <label for="bg">Dim Background</label>
+            <input id="bg" type="range" min="0" max="100" value="15" />
+            <span id="bgVal">15%</span>
           </div>
         </div>
         <div class="btns">
-          <button id="preview">▶ Preview</button>
-          <button id="export" class="sec" disabled>⬇ Process & Export</button>
+          <button id="start">Start Camera</button>
+          <button id="rec" class="sec" disabled>● Start Recording</button>
           <span id="download"></span>
         </div>
-        <div class="bar" aria-label="progress"><span id="prog"></span></div>
-        <div id="status" class="note"></div>
-        <div class="note warn">If export has no audio, we’ll add a separate audio-mux step next.</div>
       </section>
     </main>
 
-    <footer>For best edges: strong key light on face/body, uncluttered background.</footer>
+    <footer>Lighting tip: bright, even front light + dark plain background = crisp etheric silhouette.</footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
@@ -98,174 +87,165 @@
     const video = document.getElementById('src');
     const canvas = document.getElementById('out');
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
 
-    const fileEl = document.getElementById('file');
-    const previewBtn = document.getElementById('preview');
-    const exportBtn = document.getElementById('export');
-    const dlSpan = document.getElementById('download');
-    const prog = document.getElementById('prog');
-    const statusEl = document.getElementById('status');
-
-    // Controls
     const edgeEl = document.getElementById('edge');
     const blurEl = document.getElementById('blur');
     const glowEl = document.getElementById('glow');
     const scaleEl = document.getElementById('scale');
-    const tintEl = document.getElementById('tint');
+    const histEl = document.getElementById('hist');
+    const bgEl = document.getElementById('bg');
+
     const edgeVal = document.getElementById('edgeVal');
     const blurVal = document.getElementById('blurVal');
     const glowVal = document.getElementById('glowVal');
     const scaleVal = document.getElementById('scaleVal');
-    const tintVal = document.getElementById('tintVal');
-    const fpsEl = document.getElementById('fps');
+    const histVal = document.getElementById('histVal');
+    const bgVal = document.getElementById('bgVal');
 
-    [edgeEl, blurEl, glowEl, scaleEl, tintEl, fpsEl].forEach(el=> el.addEventListener('input', updateLabels));
-    function updateLabels(){
-      edgeVal.textContent = edgeEl.value+"px";
-      blurVal.textContent = blurEl.value;
-      glowVal.textContent = (glowEl.value/100).toFixed(2);
-      scaleVal.textContent = scaleEl.value+"%";
-      tintVal.textContent = tintEl.value.toUpperCase();
-    } updateLabels();
+    [edgeEl,blurEl,glowEl,scaleEl,histEl,bgEl].forEach(el=> el.addEventListener('input',()=>{
+      edgeVal.textContent=edgeEl.value+'px';
+      blurVal.textContent=blurEl.value;
+      glowVal.textContent=(glowEl.value/100).toFixed(2);
+      scaleVal.textContent=scaleEl.value+'%';
+      histVal.textContent=histEl.value+' frames';
+      bgVal.textContent=bgEl.value+'%';
+    }));
 
     // Offscreens
     const maskCanvas = document.createElement('canvas');
     const maskCtx = maskCanvas.getContext('2d');
     const softMaskCanvas = document.createElement('canvas');
     const softMaskCtx = softMaskCanvas.getContext('2d');
+    const avgMaskCanvas = document.createElement('canvas');
+    const avgMaskCtx = avgMaskCanvas.getContext('2d');
     const auraCanvas = document.createElement('canvas');
     const auraCtx = auraCanvas.getContext('2d');
     const silhouetteCanvas = document.createElement('canvas');
     const silhouetteCtx = silhouetteCanvas.getContext('2d');
 
-    // MediaPipe
-    const selfieSeg = new SelfieSegmentation({locateFile: (f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`});
-    selfieSeg.setOptions({modelSelection:1, selfieMode:true});
-
-    selfieSeg.onResults(onResults);
+    // History for temporal smoothing
+    const history = []; // array of canvas snapshots
 
     function sizeAll(w,h){
-      [canvas, maskCanvas, softMaskCanvas, auraCanvas, silhouetteCanvas].forEach(c=>{c.width=w; c.height=h;});
+      [canvas,maskCanvas,softMaskCanvas,avgMaskCanvas,auraCanvas,silhouetteCanvas].forEach(c=>{c.width=w; c.height=h;});
     }
 
-    function drawBackground(w,h){
+    const selfieSeg = new SelfieSegmentation({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`});
+    selfieSeg.setOptions({modelSelection:1, selfieMode:true});
+    selfieSeg.onResults(onResults);
+
+    function pushHistory(){
+      const snap = document.createElement('canvas'); snap.width=softMaskCanvas.width; snap.height=softMaskCanvas.height;
+      snap.getContext('2d').drawImage(softMaskCanvas,0,0);
+      history.unshift(snap);
+      const keep = Math.min(6, Number(histEl.value));
+      while(history.length > keep) history.pop();
+    }
+
+    function averageHistory(w,h){
+      avgMaskCtx.clearRect(0,0,w,h);
+      const n = history.length; if(n===0){ avgMaskCtx.drawImage(softMaskCanvas,0,0); return; }
+      const weights = [];
+      let sum=0; for(let i=0;i<n;i++){ const wgt = Math.pow(0.65,i); weights.push(wgt); sum+=wgt; }
+      for(let i=0;i<n;i++){
+        avgMaskCtx.globalAlpha = weights[i]/sum; avgMaskCtx.drawImage(history[i],0,0);
+      }
+      avgMaskCtx.globalAlpha = 1;
+    }
+
+    function composeBackground(w,h){
       const bg = ctx.createRadialGradient(w/2,h*0.45,Math.min(w,h)*0.1, w/2,h*0.55, Math.max(w,h)*0.85);
       bg.addColorStop(0,'rgba(255,255,255,0.55)');
-      bg.addColorStop(0.5,'rgba(150,210,230,0.32)');
+      bg.addColorStop(0.5,'rgba(150,210,230,0.28)');
       bg.addColorStop(1,'rgba(20,35,45,1)');
       ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      const dim = Number(bgEl.value)/100; if(dim>0){ ctx.globalAlpha = dim; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha = 1; }
     }
 
-    function compose(w,h){
-      drawBackground(w,h);
-      ctx.globalAlpha = 0.12; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha=1;
-      ctx.drawImage(auraCanvas,0,0);
-      ctx.drawImage(silhouetteCanvas,0,0);
-    }
+    function onResults(results){
+      if(!video.videoWidth) return;
+      const w = video.videoWidth, h = video.videoHeight; sizeAll(w,h);
 
-    function buildSilhouette(w,h){
-      // mask
-      maskCtx.imageSmoothingEnabled = true;
+      // Raw mask at full size
       maskCtx.clearRect(0,0,w,h);
-      maskCtx.drawImage(selfieSeg.segmentationMask,0,0,w,h);
+      maskCtx.imageSmoothingEnabled = true; maskCtx.imageSmoothingQuality='high';
+      maskCtx.drawImage(results.segmentationMask,0,0,w,h);
 
-      // feather
+      // Edge feather
       softMaskCtx.clearRect(0,0,w,h);
-      softMaskCtx.filter = `blur(${+edgeEl.value}px)`;
+      softMaskCtx.filter = `blur(${Number(edgeEl.value)}px)`;
       softMaskCtx.drawImage(maskCanvas,0,0);
       softMaskCtx.filter = 'none';
 
-      // silhouette
+      pushHistory();
+      averageHistory(w,h);
+
+      // Build silhouette from averaged mask
       silhouetteCtx.clearRect(0,0,w,h);
       silhouetteCtx.save();
-      silhouetteCtx.drawImage(softMaskCanvas,0,0);
+      silhouetteCtx.drawImage(avgMaskCanvas,0,0);
       silhouetteCtx.globalCompositeOperation = 'source-in';
       silhouetteCtx.fillStyle = '#ffffff';
       silhouetteCtx.fillRect(0,0,w,h);
       silhouetteCtx.restore();
 
-      // aura
+      // Aura pass
       auraCtx.clearRect(0,0,w,h);
       auraCtx.save();
-      auraCtx.filter = `blur(${+blurEl.value}px)`;
-      auraCtx.globalAlpha = +glowEl.value/100;
-      const scale = 1 + (+scaleEl.value/100);
-      auraCtx.setTransform(scale,0,0,scale,0,0);
-      auraCtx.drawImage(silhouetteCanvas,0,0);
-      auraCtx.setTransform(1,0,0,1,0,0);
+      auraCtx.filter = `blur(${Number(blurEl.value)}px)`;
+      auraCtx.globalAlpha = Number(glowEl.value)/100;
+      const s = 1 + Number(scaleEl.value)/100; auraCtx.setTransform(s,0,0,s,0,0);
+      auraCtx.drawImage(silhouetteCanvas,0,0); auraCtx.setTransform(1,0,0,1,0,0);
       auraCtx.globalCompositeOperation = 'source-in';
-      const grad = auraCtx.createRadialGradient(w/2,h/2,Math.min(w,h)*0.06,w/2,h/2,Math.max(w,h)*0.65);
-      grad.addColorStop(0, tintEl.value + 'ff');
-      grad.addColorStop(0.55, tintEl.value + '40');
-      grad.addColorStop(1, '#ffffff00');
+      const grad = auraCtx.createRadialGradient(w/2,h/2,Math.min(w,h)*0.06, w/2,h/2, Math.max(w,h)*0.65);
+      grad.addColorStop(0,'#ffffff');
+      grad.addColorStop(0.55,'rgba(200,230,255,0.4)');
+      grad.addColorStop(1,'rgba(255,255,255,0)');
       auraCtx.fillStyle = grad; auraCtx.fillRect(0,0,w,h);
       auraCtx.restore();
+
+      // Composite
+      composeBackground(w,h);
+      ctx.drawImage(auraCanvas,0,0);
+      ctx.drawImage(silhouetteCanvas,0,0);
     }
 
-    async function onResults(){
-      // Called after selfieSeg.send
-      const w = video.videoWidth, h = video.videoHeight; if(!w||!h) return;
-      sizeAll(w,h);
-      buildSilhouette(w,h);
-      compose(w,h);
+    async function start(){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video:{facingMode:'user', width:{ideal:1920}, height:{ideal:1080}}, audio:false
+        });
+        video.srcObject = stream; await video.play();
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        requestAnimationFrame(loop);
+        document.getElementById('rec').disabled=false;
+      }catch(e){ alert('Camera permission or support error: '+e.message); }
     }
 
-    // --- Preview loop ---
-    let previewRunning = false;
-    async function previewLoop(){
-      if(!previewRunning || video.paused || video.ended) return;
-      await selfieSeg.send({image: video});
-      requestAnimationFrame(previewLoop);
+    async function loop(){
+      if(video.readyState>=2){ await selfieSeg.send({image: video}); }
+      requestAnimationFrame(loop);
     }
 
-    // --- Export ---
-    async function exportProcessed(){
-      const fps = +fpsEl.value; const w = video.videoWidth, h = video.videoHeight; sizeAll(w,h);
-      // capture processed canvas + try to include audio
-      const canvasStream = canvas.captureStream(fps);
-      let audioTrack = null;
-      try { const vs = video.captureStream(); const at = vs.getAudioTracks()[0]; if(at) audioTrack = at; } catch(e){}
-      const mixed = new MediaStream([canvasStream.getVideoTracks()[0]].concat(audioTrack?[audioTrack]:[]));
-
-      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')? 'video/webm;codecs=vp8' : 'video/webm');
-      const rec = new MediaRecorder(mixed, {mimeType:mime, videoBitsPerSecond: 7_000_000});
-      let chunks=[]; rec.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
-      rec.onstop = ()=>{ const blob = new Blob(chunks,{type:mime}); const url = URL.createObjectURL(blob); const name = `etheric-${Date.now()}.webm`;
-        dlSpan.innerHTML=''; const a=document.createElement('a'); a.href=url; a.download=name; a.className='dl'; a.textContent='Download processed video'; dlSpan.appendChild(a);
-        statusEl.textContent = 'Done.'; exportBtn.disabled=false; previewBtn.disabled=false; };
-
-      // run
-      statusEl.textContent='Processing… keep this tab active.'; exportBtn.disabled=true; previewBtn.disabled=true; prog.style.width='0%';
-      rec.start(); video.currentTime = 0; await video.play();
-
-      async function step(){
-        if(video.paused || video.ended){ rec.stop(); return; }
-        await selfieSeg.send({image: video});
-        const p = (video.currentTime / video.duration) * 100; prog.style.width = p + '%';
-        requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
+    // Recording
+    let recorder, chunks=[], recording=false; const recBtn=document.getElementById('rec'); const dlSpan=document.getElementById('download');
+    function toggleRec(){
+      if(!recording){
+        const stream = canvas.captureStream(30);
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+        if(!mime){ alert('In‑page recording not supported here. Use your phone\'s screen recorder.'); return; }
+        recorder = new MediaRecorder(stream,{mimeType:mime, videoBitsPerSecond:6_000_000});
+        chunks=[]; recorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+        recorder.onstop=()=>{ const blob=new Blob(chunks,{type:recorder.mimeType}); const url=URL.createObjectURL(blob);
+          const a=document.createElement('a'); a.href=url; a.download=`etheric-live-${Date.now()}.webm`; a.className='dl'; a.textContent='Download video'; dlSpan.innerHTML=''; dlSpan.appendChild(a);
+        };
+        recorder.start(); recording=true; recBtn.textContent='■ Stop Recording'; recBtn.classList.remove('sec');
+      } else { recorder.stop(); recording=false; recBtn.textContent='● Start Recording'; recBtn.classList.add('sec'); }
     }
 
-    // --- File handling & buttons ---
-    fileEl.addEventListener('change', async (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      const url = URL.createObjectURL(f);
-      video.src = url; await video.play(); video.pause();
-      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      exportBtn.disabled = false; statusEl.textContent = `Loaded: ${Math.round(video.duration)}s, ${video.videoWidth}x${video.videoHeight}`;
-    });
-
-    previewBtn.addEventListener('click', async ()=>{
-      if(!video.src){ alert('Choose a video first.'); return; }
-      video.currentTime = 0; await video.play(); previewRunning = true; previewLoop();
-    });
-
-    exportBtn.addEventListener('click', ()=>{
-      if(!video.src){ alert('Choose a video first.'); return; }
-      previewRunning = false; exportProcessed();
-    });
+    document.getElementById('start').addEventListener('click', start);
+    document.getElementById('rec').addEventListener('click', toggleRec);
   </script>
 </body>
 </html>
-
