@@ -1,232 +1,217 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Etheric Double Camera — Prototype</title>
+  <style>
+    :root{--bg1:#1e2f3a;--bg2:#7fb6c9;--bg3:#c6b6df}
+    *{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;background:radial-gradient(140% 120% at 50% 20%, rgba(198,182,223,.45), rgba(127,182,201,.35) 35%, rgba(30,47,58,.9))}
+    header{padding:16px 20px;color:#fff;text-align:center}
+    header h1{margin:.2rem 0 0;font-size:1.2rem;font-weight:600;letter-spacing:.02em}
+    .app{display:grid;grid-template-columns:1fr;gap:12px;padding:12px}
+    .stage{position:relative;max-width:640px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);background:#000}
+    canvas, video{display:block;width:100%;height:auto}
+    video{position:absolute;inset:0;opacity:0;pointer-events:none}
+    .controls{max-width:640px;margin:10px auto 18px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);padding:12px 14px;border-radius:14px;color:#eef}
+    .row{display:grid;grid-template-columns:140px 1fr 60px;gap:10px;align-items:center;margin:6px 0}
+    input[type="range"]{width:100%}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    button{appearance:none;background:#e8e8ff;color:#222;border:none;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
+    button.sec{background:#222;color:#eaeaff;border:1px solid #666}
+    footer{color:#9ec9d8;text-align:center;padding:12px;font-size:.85rem}
+    .note{font-size:.8rem;color:#cfe7f1}
+    a.dl{display:inline-block;margin-left:8px}
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Etheric Double Camera — Prototype&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>:root{--bg1:#1e2f3a;--bg2:#7fb6c9;--bg3:#c6b6df}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>*{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.wrap{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;background:radial-gradient(140% 120% at 50% 20%, rgba(198,182,223,.45), rgba(127,182,201,.35) 35%, rgba(30,47,58,.9))}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header{padding:16px 20px;color:#fff;text-align:center}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header h1{margin:.2rem 0 0;font-size:1.2rem;font-weight:600;letter-spacing:.02em}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.app{display:grid;grid-template-columns:1fr;gap:12px;padding:12px}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.stage{position:relative;max-width:640px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);background:#000}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>canvas, video{display:block;width:100%;height:auto}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>video{position:absolute;inset:0;opacity:0;pointer-events:none}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.controls{max-width:640px;margin:10px auto 18px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);padding:12px 14px;border-radius:14px;color:#eef}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.row{display:grid;grid-template-columns:140px 1fr 60px;gap:10px;align-items:center;margin:6px 0}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>input[type="range"]{width:100%}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button{appearance:none;background:#e8e8ff;color:#222;border:none;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>button.sec{background:#222;color:#eaeaff;border:1px solid #666}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>footer{color:#9ec9d8;text-align:center;padding:12px;font-size:.85rem}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.note{font-size:.8rem;color:#cfe7f1}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>a.dl{display:inline-block;margin-left:8px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="wrap"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;h1&gt;Etheric Double Camera — Prototype&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="note"&gt;Live aura silhouette with recording. Works best in Chrome/Android. On iPhone/Safari, use the system screen recorder if in‑page recording isn’t available.&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;main class="app"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="stage"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;video id="video" playsinline&gt;&lt;/video&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;canvas id="out"&gt;&lt;/canvas&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;section class="controls"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;label for="blur"&gt;Aura Blur&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;input id="blur" type="range" min="0" max="60" value="24" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="blurVal"&gt;24&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;label for="glow"&gt;Glow Intensity&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;input id="glow" type="range" min="0" max="100" value="65" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="glowVal"&gt;0.65&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;label for="scale"&gt;Aura Size&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;input id="scale" type="range" min="0" max="10" value="2" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="scaleVal"&gt;2%&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;label for="tint"&gt;Aura Tint&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;input id="tint" type="color" value="#88d0ff" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="tintVal"&gt;#88D0FF&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="btns"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;button id="start"&gt;Start Camera&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;button id="rec" class="sec" disabled&gt;● Start Recording&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="download"&gt;&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/section&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/main&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;footer&gt;Tip: stand ~1m from the camera with even light. Try darker rooms for a stronger aura.&lt;/footer&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const video = document.getElementById('video');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const canvas = document.getElementById('out');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const ctx = canvas.getContext('2d');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// UI</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const blurEl = document.getElementById('blur');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const glowEl = document.getElementById('glow');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const scaleEl = document.getElementById('scale');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const tintEl = document.getElementById('tint');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const blurVal = document.getElementById('blurVal');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const glowVal = document.getElementById('glowVal');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const scaleVal = document.getElementById('scaleVal');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const tintVal = document.getElementById('tintVal');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>[blurEl, glowEl, scaleEl, tintEl].forEach(el=&gt; el.addEventListener('input', updateLabels));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function updateLabels(){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>blurVal.textContent = blurEl.value;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>glowVal.textContent = (glowEl.value/100).toFixed(2);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>scaleVal.textContent = scaleEl.value+"%";</p>
-<p class="p1"><span class="Apple-converted-space">      </span>tintVal.textContent = tintEl.value.toUpperCase();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>updateLabels();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Offscreen buffers</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const maskCanvas = document.createElement('canvas');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const maskCtx = maskCanvas.getContext('2d');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const auraCanvas = document.createElement('canvas');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const auraCtx = auraCanvas.getContext('2d');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const silhouetteCanvas = document.createElement('canvas');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const silhouetteCtx = silhouetteCanvas.getContext('2d');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let segmentationReady = false;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// MediaPipe setup</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const selfieSeg = new SelfieSegmentation({locateFile: (file)=&gt; `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>selfieSeg.setOptions({modelSelection: 1}); // 0=landscape,1=general</p>
-<p class="p1"><span class="Apple-converted-space">    </span>selfieSeg.onResults(onResults);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function onResults(results){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(!video.videoWidth) return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const w = video.videoWidth;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const h = video.videoHeight;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>[canvas, maskCanvas, auraCanvas, silhouetteCanvas].forEach(c=&gt;{c.width=w; c.height=h;});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Draw the segmentation mask to maskCanvas</p>
-<p class="p1"><span class="Apple-converted-space">      </span>maskCtx.clearRect(0,0,w,h);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>maskCtx.drawImage(results.segmentationMask, 0,0,w,h);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Build silhouette (pure white where person is)</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.clearRect(0,0,w,h);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.save();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.drawImage(maskCanvas,0,0);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.globalCompositeOperation = 'source-in';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.fillStyle = '#ffffff';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.fillRect(0,0,w,h);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>silhouetteCtx.restore();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Aura pass: copy silhouette -&gt; blur -&gt; tint -&gt; scale a bit</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.clearRect(0,0,w,h);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.save();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.filter = `blur(${+blurEl.value}px)`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.globalAlpha = +glowEl.value/100;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const scale = 1 + (+scaleEl.value/100);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const dx = (w*(scale-1))/-2;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const dy = (h*(scale-1))/-2;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.setTransform(scale,0,0,scale,0,0);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.drawImage(silhouetteCanvas,0,0);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.setTransform(1,0,0,1,0,0);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Tint the blurred aura</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.globalCompositeOperation = 'source-in';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const grad = auraCtx.createRadialGradient(w/2,h/2,Math.min(w,h)*0.05,w/2,h/2,Math.max(w,h)*0.6);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>grad.addColorStop(0, tintEl.value + 'ff');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>grad.addColorStop(1, '#ffffff00');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.fillStyle = grad;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.fillRect(0,0,w,h);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>auraCtx.restore();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Composite final output: background gradient -&gt; camera (subtle) -&gt; aura -&gt; silhouette (crisp)</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Background etheric field</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const bg = ctx.createRadialGradient(w/2,h*0.45,Math.min(w,h)*0.1, w/2,h*0.55, Math.max(w,h)*0.8);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>bg.addColorStop(0,'rgba(255,255,255,0.5)');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>bg.addColorStop(0.5,'rgba(150, 210, 230, 0.35)');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>bg.addColorStop(1,'rgba(20, 35, 45, 1)');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.fillStyle = bg;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.fillRect(0,0,w,h);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Dimmed camera feed for context</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.globalAlpha = 0.15; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha=1;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Aura</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.drawImage(auraCanvas,0,0);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Crisp silhouette (slight rim enhancement)</p>
-<p class="p1"><span class="Apple-converted-space">      </span>ctx.drawImage(silhouetteCanvas,0,0);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>segmentationReady = true;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>async function start(){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}}, audio:false});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>video.srcObject = stream; await video.play();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>canvas.width = video.videoWidth; canvas.height = video.videoHeight;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>animate();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('rec').disabled = false;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>async function animate(){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(video.readyState &gt;= 2){ await selfieSeg.send({image: video}); }</p>
-<p class="p1"><span class="Apple-converted-space">      </span>requestAnimationFrame(animate);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// Recording</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let recorder, chunks=[]; let recording=false; let dlLink;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function toggleRec(){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(!recording){</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const stream = canvas.captureStream(30);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if(!mime){</p>
-<p class="p1"><span class="Apple-converted-space">          </span>alert('In‑page recording not supported in this browser. Use your phone\'s screen recorder.');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recorder = new MediaRecorder(stream, {mimeType: mime});</p>
-<p class="p1"><span class="Apple-converted-space">        </span>chunks=[];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recorder.ondataavailable = e=&gt;{ if(e.data.size&gt;0) chunks.push(e.data); };</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recorder.onstop = ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const blob = new Blob(chunks, {type: recorder.mimeType});</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const url = URL.createObjectURL(blob);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const name = `etheric-double-${Date.now()}.webm`;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const span = document.getElementById('download');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>span.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">          </span>dlLink = document.createElement('a'); dlLink.className='dl'; dlLink.href=url; dlLink.download=name; dlLink.textContent='Download video';</p>
-<p class="p1"><span class="Apple-converted-space">          </span>span.appendChild(dlLink);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recorder.start(); recording=true; recBtn.textContent='■ Stop Recording'; recBtn.classList.remove('sec');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recorder.stop(); recording=false; recBtn.textContent='● Start Recording'; recBtn.classList.add('sec');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const startBtn = document.getElementById('start');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const recBtn = document.getElementById('rec');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>startBtn.addEventListener('click', start);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>recBtn.addEventListener('click', toggleRec);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+  <div class="wrap">
+    <header>
+      <h1>Etheric Double Camera — Prototype</h1>
+      <div class="note">Live aura silhouette with recording. Works best in Chrome/Android. On iPhone/Safari, use the system screen recorder if in‑page recording isn’t available.</div>
+    </header>
+    <main class="app">
+      <div class="stage">
+        <video id="video" playsinline></video>
+        <canvas id="out"></canvas>
+      </div>
+      <section class="controls">
+        <div class="row">
+          <label for="blur">Aura Blur</label>
+          <input id="blur" type="range" min="0" max="60" value="24" />
+          <span id="blurVal">24</span>
+        </div>
+        <div class="row">
+          <label for="glow">Glow Intensity</label>
+          <input id="glow" type="range" min="0" max="100" value="65" />
+          <span id="glowVal">0.65</span>
+        </div>
+        <div class="row">
+          <label for="scale">Aura Size</label>
+          <input id="scale" type="range" min="0" max="10" value="2" />
+          <span id="scaleVal">2%</span>
+        </div>
+        <div class="row">
+          <label for="tint">Aura Tint</label>
+          <input id="tint" type="color" value="#88d0ff" />
+          <span id="tintVal">#88D0FF</span>
+        </div>
+        <div class="btns">
+          <button id="start">Start Camera</button>
+          <button id="rec" class="sec" disabled>● Start Recording</button>
+          <span id="download"></span>
+        </div>
+      </section>
+    </main>
+    <footer>Tip: stand ~1m from the camera with even light. Try darker rooms for a stronger aura.</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('out');
+    const ctx = canvas.getContext('2d');
+
+    // UI
+    const blurEl = document.getElementById('blur');
+    const glowEl = document.getElementById('glow');
+    const scaleEl = document.getElementById('scale');
+    const tintEl = document.getElementById('tint');
+    const blurVal = document.getElementById('blurVal');
+    const glowVal = document.getElementById('glowVal');
+    const scaleVal = document.getElementById('scaleVal');
+    const tintVal = document.getElementById('tintVal');
+    [blurEl, glowEl, scaleEl, tintEl].forEach(el=> el.addEventListener('input', updateLabels));
+    function updateLabels(){
+      blurVal.textContent = blurEl.value;
+      glowVal.textContent = (glowEl.value/100).toFixed(2);
+      scaleVal.textContent = scaleEl.value+"%";
+      tintVal.textContent = tintEl.value.toUpperCase();
+    }
+    updateLabels();
+
+    // Offscreen buffers
+    const maskCanvas = document.createElement('canvas');
+    const maskCtx = maskCanvas.getContext('2d');
+    const auraCanvas = document.createElement('canvas');
+    const auraCtx = auraCanvas.getContext('2d');
+    const silhouetteCanvas = document.createElement('canvas');
+    const silhouetteCtx = silhouetteCanvas.getContext('2d');
+
+    let segmentationReady = false;
+
+    // MediaPipe setup
+    const selfieSeg = new SelfieSegmentation({locateFile: (file)=> `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`});
+    selfieSeg.setOptions({modelSelection: 1}); // 0=landscape,1=general
+    selfieSeg.onResults(onResults);
+
+    function onResults(results){
+      if(!video.videoWidth) return;
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      [canvas, maskCanvas, auraCanvas, silhouetteCanvas].forEach(c=>{c.width=w; c.height=h;});
+
+      // Draw the segmentation mask to maskCanvas
+      maskCtx.clearRect(0,0,w,h);
+      maskCtx.drawImage(results.segmentationMask, 0,0,w,h);
+
+      // Build silhouette (pure white where person is)
+      silhouetteCtx.clearRect(0,0,w,h);
+      silhouetteCtx.save();
+      silhouetteCtx.drawImage(maskCanvas,0,0);
+      silhouetteCtx.globalCompositeOperation = 'source-in';
+      silhouetteCtx.fillStyle = '#ffffff';
+      silhouetteCtx.fillRect(0,0,w,h);
+      silhouetteCtx.restore();
+
+      // Aura pass: copy silhouette -> blur -> tint -> scale a bit
+      auraCtx.clearRect(0,0,w,h);
+      auraCtx.save();
+      auraCtx.filter = `blur(${+blurEl.value}px)`;
+      auraCtx.globalAlpha = +glowEl.value/100;
+      const scale = 1 + (+scaleEl.value/100);
+      const dx = (w*(scale-1))/-2;
+      const dy = (h*(scale-1))/-2;
+      auraCtx.setTransform(scale,0,0,scale,0,0);
+      auraCtx.drawImage(silhouetteCanvas,0,0);
+      auraCtx.setTransform(1,0,0,1,0,0);
+      // Tint the blurred aura
+      auraCtx.globalCompositeOperation = 'source-in';
+      const grad = auraCtx.createRadialGradient(w/2,h/2,Math.min(w,h)*0.05,w/2,h/2,Math.max(w,h)*0.6);
+      grad.addColorStop(0, tintEl.value + 'ff');
+      grad.addColorStop(1, '#ffffff00');
+      auraCtx.fillStyle = grad;
+      auraCtx.fillRect(0,0,w,h);
+      auraCtx.restore();
+
+      // Composite final output: background gradient -> camera (subtle) -> aura -> silhouette (crisp)
+      // Background etheric field
+      const bg = ctx.createRadialGradient(w/2,h*0.45,Math.min(w,h)*0.1, w/2,h*0.55, Math.max(w,h)*0.8);
+      bg.addColorStop(0,'rgba(255,255,255,0.5)');
+      bg.addColorStop(0.5,'rgba(150, 210, 230, 0.35)');
+      bg.addColorStop(1,'rgba(20, 35, 45, 1)');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0,0,w,h);
+
+      // Dimmed camera feed for context
+      ctx.globalAlpha = 0.15; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha=1;
+
+      // Aura
+      ctx.drawImage(auraCanvas,0,0);
+
+      // Crisp silhouette (slight rim enhancement)
+      ctx.drawImage(silhouetteCanvas,0,0);
+
+      segmentationReady = true;
+    }
+
+    async function start(){
+      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}}, audio:false});
+      video.srcObject = stream; await video.play();
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      animate();
+      document.getElementById('rec').disabled = false;
+    }
+
+    async function animate(){
+      if(video.readyState >= 2){ await selfieSeg.send({image: video}); }
+      requestAnimationFrame(animate);
+    }
+
+    // Recording
+    let recorder, chunks=[]; let recording=false; let dlLink;
+    function toggleRec(){
+      if(!recording){
+        const stream = canvas.captureStream(30);
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+        if(!mime){
+          alert('In‑page recording not supported in this browser. Use your phone\'s screen recorder.');
+          return;
+        }
+        recorder = new MediaRecorder(stream, {mimeType: mime});
+        chunks=[];
+        recorder.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
+        recorder.onstop = ()=>{
+          const blob = new Blob(chunks, {type: recorder.mimeType});
+          const url = URL.createObjectURL(blob);
+          const name = `etheric-double-${Date.now()}.webm`;
+          const span = document.getElementById('download');
+          span.innerHTML = '';
+          dlLink = document.createElement('a'); dlLink.className='dl'; dlLink.href=url; dlLink.download=name; dlLink.textContent='Download video';
+          span.appendChild(dlLink);
+        };
+        recorder.start(); recording=true; recBtn.textContent='■ Stop Recording'; recBtn.classList.remove('sec');
+      } else {
+        recorder.stop(); recording=false; recBtn.textContent='● Start Recording'; recBtn.classList.add('sec');
+      }
+    }
+
+    const startBtn = document.getElementById('start');
+    const recBtn = document.getElementById('rec');
+    startBtn.addEventListener('click', start);
+    recBtn.addEventListener('click', toggleRec);
+  </script>
 </body>
 </html>
+
