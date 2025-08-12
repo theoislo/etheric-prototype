@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Etheric Double — Video Processor</title>
+  <title>Etheric Double — Video Processor (fixed)</title>
   <style>
     :root{--bg1:#1e2f3a;--bg2:#7fb6c9;--bg3:#c6b6df}
     *{box-sizing:border-box}
@@ -23,7 +23,7 @@
     button{appearance:none;background:#e8e8ff;color:#222;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     button.sec{background:#222;color:#eaeaff;border:1px solid #666}
     .muted{opacity:.75}
-    .bar{height:8px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden}
+    .bar{height:8px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden;margin-top:8px}
     .bar>span{display:block;height:100%;width:0;background:#e8e8ff}
     footer{color:#9ec9d8;text-align:center;padding:12px;font-size:.85rem}
     .note{font-size:.85rem;color:#cfe7f1}
@@ -35,18 +35,18 @@
   <div class="wrap">
     <header>
       <h1>Etheric Double — Video Processor</h1>
-      <div class="note">Upload any video, apply the etheric aura, and export. Works best in Chrome (desktop/Android). Safari/iPhone can preview but may not export long videos.</div>
+      <div class="note">Upload any video, apply the etheric aura, and export. Best in Chrome (desktop/Android). Safari/iPhone can preview but may not export long clips.</div>
     </header>
 
     <main class="app">
-      <div class="stage"><video id="src" playsinline></video><canvas id="out"></canvas></div>
+      <div class="stage"><video id="src" playsinline crossorigin="anonymous"></video><canvas id="out"></canvas></div>
 
       <section class="panel">
         <div class="grid">
           <div>
             <label>Video file</label>
             <input id="file" type="file" accept="video/*" />
-            <div class="note muted">Tip: record normally at 1080p, even lighting, darker background.</div>
+            <div class="note muted">Tip: record at 1080p, even lighting, darker background.</div>
           </div>
           <div class="row">
             <label for="edge">Edge Feather</label>
@@ -86,7 +86,7 @@
         </div>
         <div class="bar" aria-label="progress"><span id="prog"></span></div>
         <div id="status" class="note"></div>
-        <div class="note warn">Audio: we try to include your video's audio. Some browsers block it for local files; if export is silent, we'll add a separate audio mux step if needed.</div>
+        <div class="note warn">If export has no audio, we’ll add a separate audio-mux step next.</div>
       </section>
     </main>
 
@@ -144,9 +144,6 @@
 
     selfieSeg.onResults(onResults);
 
-    let lastFrameTime = 0;
-    let processing = false;
-
     function sizeAll(w,h){
       [canvas, maskCanvas, softMaskCanvas, auraCanvas, silhouetteCanvas].forEach(c=>{c.width=w; c.height=h;});
     }
@@ -159,15 +156,18 @@
       ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
     }
 
-    function onResults(results){
-      const w = video.videoWidth; const h = video.videoHeight;
-      if(!w||!h) return;
-      sizeAll(w,h);
+    function compose(w,h){
+      drawBackground(w,h);
+      ctx.globalAlpha = 0.12; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha=1;
+      ctx.drawImage(auraCanvas,0,0);
+      ctx.drawImage(silhouetteCanvas,0,0);
+    }
 
+    function buildSilhouette(w,h){
       // mask
       maskCtx.imageSmoothingEnabled = true;
       maskCtx.clearRect(0,0,w,h);
-      maskCtx.drawImage(results.segmentationMask,0,0,w,h);
+      maskCtx.drawImage(selfieSeg.segmentationMask,0,0,w,h);
 
       // feather
       softMaskCtx.clearRect(0,0,w,h);
@@ -200,73 +200,54 @@
       grad.addColorStop(1, '#ffffff00');
       auraCtx.fillStyle = grad; auraCtx.fillRect(0,0,w,h);
       auraCtx.restore();
-
-      // compose
-      drawBackground(w,h);
-      ctx.globalAlpha = 0.12; ctx.drawImage(video,0,0,w,h); ctx.globalAlpha=1;
-      ctx.drawImage(auraCanvas,0,0);
-      ctx.drawImage(silhouetteCanvas,0,0);
     }
 
-    // Preview loop (no recording)
-    function previewLoop(){
-      if(video.paused || video.ended) return;
-      selfieSeg.send({image: video});
+    async function onResults(){
+      // Called after selfieSeg.send
+      const w = video.videoWidth, h = video.videoHeight; if(!w||!h) return;
+      sizeAll(w,h);
+      buildSilhouette(w,h);
+      compose(w,h);
+    }
+
+    // --- Preview loop ---
+    let previewRunning = false;
+    async function previewLoop(){
+      if(!previewRunning || video.paused || video.ended) return;
+      await selfieSeg.send({image: video});
       requestAnimationFrame(previewLoop);
     }
 
-    // Export
+    // --- Export ---
     async function exportProcessed(){
-      const fps = +fpsEl.value;
-      const w = video.videoWidth, h = video.videoHeight;
-      sizeAll(w,h);
-
-      // Capture processed canvas + try to add original audio
+      const fps = +fpsEl.value; const w = video.videoWidth, h = video.videoHeight; sizeAll(w,h);
+      // capture processed canvas + try to include audio
       const canvasStream = canvas.captureStream(fps);
       let audioTrack = null;
-      try {
-        const vs = video.captureStream();
-        const at = vs.getAudioTracks()[0];
-        if(at) audioTrack = at;
-      } catch(e) {}
+      try { const vs = video.captureStream(); const at = vs.getAudioTracks()[0]; if(at) audioTrack = at; } catch(e){}
       const mixed = new MediaStream([canvasStream.getVideoTracks()[0]].concat(audioTrack?[audioTrack]:[]));
 
       const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')? 'video/webm;codecs=vp8' : 'video/webm');
       const rec = new MediaRecorder(mixed, {mimeType:mime, videoBitsPerSecond: 7_000_000});
-      let chunks=[];
-      rec.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
-      rec.onstop = ()=>{
-        const blob = new Blob(chunks,{type:mime});
-        const url = URL.createObjectURL(blob);
-        const name = `etheric-${Date.now()}.webm`;
-        dlSpan.innerHTML='';
-        const a=document.createElement('a'); a.href=url; a.download=name; a.className='dl'; a.textContent='Download processed video';
-        dlSpan.appendChild(a);
-        statusEl.textContent = 'Done.';
-      };
+      let chunks=[]; rec.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
+      rec.onstop = ()=>{ const blob = new Blob(chunks,{type:mime}); const url = URL.createObjectURL(blob); const name = `etheric-${Date.now()}.webm`;
+        dlSpan.innerHTML=''; const a=document.createElement('a'); a.href=url; a.download=name; a.className='dl'; a.textContent='Download processed video'; dlSpan.appendChild(a);
+        statusEl.textContent = 'Done.'; exportBtn.disabled=false; previewBtn.disabled=false; };
 
-      // Drive frame-by-frame processing at video playback speed
-      const duration = video.duration; prog.style.width='0%';
-      statusEl.textContent = 'Processing… don\'t switch tabs.'; exportBtn.disabled = true; previewBtn.disabled = true;
+      // run
+      statusEl.textContent='Processing… keep this tab active.'; exportBtn.disabled=true; previewBtn.disabled=true; prog.style.width='0%';
+      rec.start(); video.currentTime = 0; await video.play();
 
-      let lastT = 0; processing = true;
-      rec.start();
-      video.currentTime = 0; await video.play();
-
-      function step(){
-        if(video.paused || video.ended){
-          rec.stop(); processing=false; exportBtn.disabled=false; previewBtn.disabled=false; return;
-        }
-        // Send current frame to MP
-        selfieSeg.send({image: video});
-        // Progress
-        const p = (video.currentTime/duration)*100; prog.style.width = p+"%";
+      async function step(){
+        if(video.paused || video.ended){ rec.stop(); return; }
+        await selfieSeg.send({image: video});
+        const p = (video.currentTime / video.duration) * 100; prog.style.width = p + '%';
         requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
 
-    // File handling
+    // --- File handling & buttons ---
     fileEl.addEventListener('change', async (e)=>{
       const f = e.target.files[0]; if(!f) return;
       const url = URL.createObjectURL(f);
@@ -277,14 +258,14 @@
 
     previewBtn.addEventListener('click', async ()=>{
       if(!video.src){ alert('Choose a video first.'); return; }
-      await video.play();
-      previewLoop();
+      video.currentTime = 0; await video.play(); previewRunning = true; previewLoop();
     });
 
     exportBtn.addEventListener('click', ()=>{
       if(!video.src){ alert('Choose a video first.'); return; }
-      exportProcessed();
+      previewRunning = false; exportProcessed();
     });
   </script>
 </body>
 </html>
+
